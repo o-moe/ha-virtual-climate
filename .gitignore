@@ -1,0 +1,9 @@
+.coverage
+.pytest_cache/
+.ruff_cache/
+.venv/
+build/
+coverage.xml
+dist/
+__pycache__/
+*.pyc

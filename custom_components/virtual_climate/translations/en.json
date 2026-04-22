@@ -1,0 +1,40 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Virtual Climate",
+        "description": "Create one or more virtual climate entities for testing.",
+        "data": {
+          "name": "Integration name",
+          "climate_names": "Climate names",
+          "initial_current_temperature": "Initial current temperature",
+          "initial_target_temperature": "Initial target temperature"
+        },
+        "data_description": {
+          "climate_names": "Comma-separated list, for example: Living Room, Office, Bedroom"
+        }
+      }
+    },
+    "error": {
+      "climate_names_required": "Enter at least one climate name."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Virtual Climate options",
+        "data": {
+          "climate_names": "Climate names",
+          "initial_current_temperature": "Initial current temperature",
+          "initial_target_temperature": "Initial target temperature"
+        },
+        "data_description": {
+          "climate_names": "Comma-separated list, for example: Living Room, Office, Bedroom"
+        }
+      }
+    },
+    "error": {
+      "climate_names_required": "Enter at least one climate name."
+    }
+  }
+}

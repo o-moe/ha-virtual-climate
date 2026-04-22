@@ -1,0 +1,7 @@
+{
+  "name": "Virtual Climate",
+  "content_in_root": false,
+  "render_readme": true,
+  "country": "DE",
+  "homeassistant": "2026.4.2"
+}
