@@ -25,6 +25,7 @@ from .const import (
 from .models import VirtualClimateState
 
 PLATFORMS: list[Platform] = [Platform.CLIMATE]
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:

@@ -1,0 +1,27 @@
+set_current_temperature:
+  target:
+    entity:
+      integration: virtual_climate
+      domain: climate
+  fields:
+    temperature:
+      required: true
+      example: 19.5
+      selector:
+        number:
+          min: 0
+          max: 40
+          step: 0.5
+          unit_of_measurement: "°C"
+
+set_availability:
+  target:
+    entity:
+      integration: virtual_climate
+      domain: climate
+  fields:
+    available:
+      required: true
+      example: false
+      selector:
+        boolean:
