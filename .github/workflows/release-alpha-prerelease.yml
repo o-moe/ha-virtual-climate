@@ -1,0 +1,81 @@
+name: Publish Alpha Pre-Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_ref:
+        description: Branch or commit to publish as an alpha pre-release
+        required: true
+        type: string
+      alpha_number:
+        description: Alpha sequence number for the current version
+        required: true
+        default: "1"
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  publish-alpha:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out requested ref
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.target_ref }}
+          fetch-depth: 0
+
+      - name: Read release metadata
+        id: metadata
+        run: |
+          TARGET_SHA="$(git rev-parse HEAD)"
+          VERSION="$(python - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("custom_components/virtual_climate/manifest.json").read_text())
+          print(manifest["version"])
+          PY
+          )"
+          RELEASE_LABEL="$(python - <<'PY'
+          import json
+          from pathlib import Path
+
+          plan = json.loads(Path(".github/release-plan.json").read_text())
+          print(plan["release_label"])
+          PY
+          )"
+          TARGET_VERSION="$(python - <<'PY'
+          import json
+          from pathlib import Path
+
+          plan = json.loads(Path(".github/release-plan.json").read_text())
+          print(plan["target_version"])
+          PY
+          )"
+          if [ "${VERSION}" != "${TARGET_VERSION}" ]; then
+            echo "manifest version ${VERSION} does not match release plan target_version ${TARGET_VERSION}" >&2
+            exit 1
+          fi
+          TAG="v${VERSION}-alpha.${{ inputs.alpha_number }}"
+          TITLE="${RELEASE_LABEL} Alpha ${{ inputs.alpha_number }}"
+          {
+            echo "version=${VERSION}"
+            echo "release_label=${RELEASE_LABEL}"
+            echo "target_version=${TARGET_VERSION}"
+            echo "target_sha=${TARGET_SHA}"
+            echo "tag=${TAG}"
+            echo "title=${TITLE}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create alpha pre-release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.metadata.outputs.tag }}" \
+            --target "${{ steps.metadata.outputs.target_sha }}" \
+            --title "${{ steps.metadata.outputs.title }}" \
+            --notes "Alpha pre-release for ${{ steps.metadata.outputs.release_label }}, targeting stable version v${{ steps.metadata.outputs.version }}, from ref \`${{ inputs.target_ref }}\` at commit \`${{ steps.metadata.outputs.target_sha }}\`." \
+            --prerelease

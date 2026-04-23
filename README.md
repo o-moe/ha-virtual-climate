@@ -62,3 +62,13 @@ uv run ruff check .
 uv run pytest
 uv run python -m build
 ```
+
+## Releases
+
+The repository uses lightweight semantic versioning with:
+
+- manual alpha pre-releases from selected refs
+- automatic beta pre-releases from `main`
+- manual stable releases from `main`
+
+See [docs/release-policy.md](docs/release-policy.md) for the release rules.
