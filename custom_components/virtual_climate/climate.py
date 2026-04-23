@@ -59,8 +59,8 @@ class VirtualClimateEntity(RestoreEntity, ClimateEntity):
         self._attr_name = state.name
         self._attr_unique_id = f"{entry_id}_{state_id}"
         self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry_id)},
-            "name": "Virtual Climate",
+            "identifiers": {(DOMAIN, f"{entry_id}_{state_id}")},
+            "name": state.name,
         }
 
     async def async_added_to_hass(self) -> None:

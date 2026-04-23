@@ -15,4 +15,6 @@ class VirtualClimateState:
     current_temperature: float
     target_temperature: float
     hvac_mode: HVACMode
+    humidity: float = 45.0
+    window_open: bool = False
     available: bool = True

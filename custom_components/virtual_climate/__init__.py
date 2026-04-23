@@ -17,14 +17,17 @@ from .const import (
     CONF_INITIAL_CURRENT_TEMPERATURE,
     CONF_INITIAL_TARGET_TEMPERATURE,
     DEFAULT_CURRENT_TEMPERATURE,
+    DEFAULT_HUMIDITY,
     DEFAULT_TARGET_TEMPERATURE,
     DOMAIN,
     SERVICE_SET_AVAILABILITY,
     SERVICE_SET_CURRENT_TEMPERATURE,
+    SERVICE_SET_HUMIDITY,
+    SERVICE_SET_WINDOW_OPEN,
 )
 from .models import VirtualClimateState
 
-PLATFORMS: list[Platform] = [Platform.CLIMATE]
+PLATFORMS: list[Platform] = [Platform.BINARY_SENSOR, Platform.CLIMATE, Platform.SENSOR]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
@@ -59,6 +62,8 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         if not hass.data[DOMAIN]:
             hass.services.async_remove(DOMAIN, SERVICE_SET_CURRENT_TEMPERATURE)
             hass.services.async_remove(DOMAIN, SERVICE_SET_AVAILABILITY)
+            hass.services.async_remove(DOMAIN, SERVICE_SET_HUMIDITY)
+            hass.services.async_remove(DOMAIN, SERVICE_SET_WINDOW_OPEN)
     return unload_ok
 
 
@@ -78,6 +83,7 @@ def _build_climate_states(entry: ConfigEntry) -> dict[str, VirtualClimateState]:
             current_temperature=current_temperature,
             target_temperature=target_temperature,
             hvac_mode=HVACMode.HEAT,
+            humidity=DEFAULT_HUMIDITY,
         )
     return climates
 
@@ -118,6 +124,28 @@ def _async_register_services(hass: HomeAssistant) -> None:
             }
         ),
     )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_HUMIDITY,
+        _async_handle_set_humidity,
+        schema=vol.Schema(
+            {
+                vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+                vol.Required("humidity"): vol.Coerce(float),
+            }
+        ),
+    )
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_WINDOW_OPEN,
+        _async_handle_set_window_open,
+        schema=vol.Schema(
+            {
+                vol.Required(ATTR_ENTITY_ID): cv.entity_ids,
+                vol.Required("open"): cv.boolean,
+            }
+        ),
+    )
 
 
 async def _async_handle_set_current_temperature(service_call: ServiceCall) -> None:
@@ -138,6 +166,24 @@ async def _async_handle_set_availability(service_call: ServiceCall) -> None:
     )
 
 
+async def _async_handle_set_humidity(service_call: ServiceCall) -> None:
+    """Update the simulated humidity."""
+    await _async_update_matching_entities(
+        service_call.hass,
+        service_call.data[ATTR_ENTITY_ID],
+        lambda state: setattr(state, "humidity", service_call.data["humidity"]),
+    )
+
+
+async def _async_handle_set_window_open(service_call: ServiceCall) -> None:
+    """Update the simulated window-contact state."""
+    await _async_update_matching_entities(
+        service_call.hass,
+        service_call.data[ATTR_ENTITY_ID],
+        lambda state: setattr(state, "window_open", service_call.data["open"]),
+    )
+
+
 async def _async_update_matching_entities(
     hass: HomeAssistant,
     entity_ids: list[str],
@@ -154,7 +200,8 @@ async def _async_update_matching_entities(
         if config_entry_id is None or not unique_id.startswith(f"{config_entry_id}_"):
             continue
 
-        state_id = unique_id.removeprefix(f"{config_entry_id}_")
+        state_key = unique_id.removeprefix(f"{config_entry_id}_")
+        state_id = state_key.split("_", 1)[0]
         stored = hass.data[DOMAIN].get(config_entry_id)
         if stored is None:
             continue

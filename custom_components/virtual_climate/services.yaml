@@ -2,7 +2,6 @@ set_current_temperature:
   target:
     entity:
       integration: virtual_climate
-      domain: climate
   fields:
     temperature:
       required: true
@@ -18,10 +17,35 @@ set_availability:
   target:
     entity:
       integration: virtual_climate
-      domain: climate
   fields:
     available:
       required: true
       example: false
+      selector:
+        boolean:
+
+set_humidity:
+  target:
+    entity:
+      integration: virtual_climate
+  fields:
+    humidity:
+      required: true
+      example: 52
+      selector:
+        number:
+          min: 0
+          max: 100
+          step: 1
+          unit_of_measurement: "%"
+
+set_window_open:
+  target:
+    entity:
+      integration: virtual_climate
+  fields:
+    open:
+      required: true
+      example: true
       selector:
         boolean:

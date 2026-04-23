@@ -55,6 +55,8 @@ class ParseClimateNamesTests(TestCase):
         self.assertEqual(climates["1"].name, "Office")
         self.assertEqual(climates["0"].current_temperature, 19.5)
         self.assertEqual(climates["0"].target_temperature, 21.0)
+        self.assertEqual(climates["0"].humidity, 45.0)
+        self.assertFalse(climates["0"].window_open)
         self.assertEqual(climates["0"].hvac_mode, HVACMode.HEAT)
 
     def test_notify_listeners_calls_all_callbacks(self) -> None:
@@ -105,3 +107,39 @@ class RuntimeUpdateTests(IsolatedAsyncioTestCase):
             )
 
         self.assertFalse(hass.data["virtual_climate"]["entry-1"]["climates"]["0"].available)
+
+    async def test_update_matching_entities_supports_linked_sensor_unique_ids(self) -> None:
+        hass = Mock()
+        entity_registry = Mock()
+        entity_registry.async_get.return_value = SimpleNamespace(
+            platform="virtual_climate",
+            config_entry_id="entry-1",
+            unique_id="entry-1_0_humidity",
+        )
+        hass.data = {
+            "virtual_climate": {
+                "entry-1": {
+                    "climates": {
+                        "0": VirtualClimateState(
+                            name="Living Room",
+                            current_temperature=20.0,
+                            target_temperature=21.0,
+                            hvac_mode=HVACMode.HEAT,
+                        )
+                    },
+                    "listeners": {"0": {Mock()}},
+                }
+            }
+        }
+
+        with patch(
+            "custom_components.virtual_climate.er.async_get",
+            return_value=entity_registry,
+        ):
+            await _async_update_matching_entities(
+                hass,
+                ["sensor.virtual_climate_living_room_humidity"],
+                lambda state: setattr(state, "humidity", 52.0),
+            )
+
+        self.assertEqual(hass.data["virtual_climate"]["entry-1"]["climates"]["0"].humidity, 52.0)
