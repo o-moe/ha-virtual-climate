@@ -1,7 +1,8 @@
 # ha-virtual-climate
 
 `ha-virtual-climate` is a small Home Assistant custom integration that exposes
-virtual `climate` entities for development, testing, and UI prototyping.
+virtual `climate` entities and paired helper sensors for development, testing,
+and UI prototyping.
 
 It is intended for situations where you need realistic thermostat-like entities
 without depending on cloud APIs, physical devices, or vendor bridges.
@@ -11,6 +12,8 @@ without depending on cloud APIs, physical devices, or vendor bridges.
 - UI config flow
 - Multiple virtual climate entities from one integration entry
 - Adjustable target temperature and HVAC mode
+- Paired current-temperature and humidity sensors per virtual climate
+- Paired window-contact binary sensor per virtual climate
 - Simulated current temperature
 - Toggle entity availability for failure-path testing
 - HACS-compatible repository structure
@@ -40,10 +43,12 @@ without depending on cloud APIs, physical devices, or vendor bridges.
 
 ## Services
 
-The integration registers two helper services:
+The integration registers helper services:
 
 - `virtual_climate.set_current_temperature`
 - `virtual_climate.set_availability`
+- `virtual_climate.set_humidity`
+- `virtual_climate.set_window_open`
 
 These can be used to simulate changing room conditions or unavailable devices.
 
